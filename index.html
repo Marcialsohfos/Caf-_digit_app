@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Café_digit — Plateforme Premium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1F3B4D; --ink-2:#28495e; --gold:#C08A2E; --gold-soft:#E8CFA0;
+    --paper:#FAF6EF; --card:#FFFFFF; --rust:#8B4A2B; --sage:#4C7A6B;
+    --text:#2A2620; --text-soft:#6B655A; --border:#E4DAC6;
+    --shadow: 0 8px 24px rgba(31,59,77,0.10);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{ font-family:'IBM Plex Sans', sans-serif; background:var(--paper); color:var(--text); min-height:100vh;
+    background-image:
+      radial-gradient(circle at 92% 6%, rgba(192,138,46,0.09), transparent 40%),
+      radial-gradient(circle at 4% 96%, rgba(31,59,77,0.07), transparent 40%);
+  }
+  h1,h2,h3,.display{ font-family:'Fraunces', serif; }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  button{ font-family:inherit; cursor:pointer; }
+  a{ color:inherit; }
+  .screen{ display:none; } .screen.active{ display:block; }
+
+  #gate{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .gate-card{ background:var(--card); border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow);
+    width:100%; max-width:440px; padding:44px 40px 36px; position:relative; overflow:hidden; }
+  .ring{ position:absolute; border:10px solid var(--gold); border-radius:50%; opacity:0.12; }
+  .ring.r1{ width:180px; height:180px; top:-70px; right:-70px; }
+  .ring.r2{ width:110px; height:110px; bottom:-45px; left:-45px; border-color:var(--ink); }
+  .gate-logo{ display:flex; align-items:center; gap:10px; margin-bottom:28px; }
+  .gate-logo .cup{ font-size:26px; }
+  .gate-logo span{ font-weight:700; color:var(--ink); font-size:19px; }
+  .gate-card h1{ font-size:26px; color:var(--ink); margin:0 0 10px; line-height:1.25; }
+  .gate-card p{ margin:0 0 22px; color:var(--text-soft); font-size:14.5px; line-height:1.55; }
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-size:12px; color:var(--text-soft); margin-bottom:5px; }
+  .key-field{ display:flex; align-items:center; border:1.5px solid var(--border); border-radius:10px; background:#FDFBF7; overflow:hidden; }
+  .key-field .tag{ padding:12px; background:var(--ink); color:#fff; font-size:13px; font-weight:600; }
+  .key-field input{ flex:1; border:none; outline:none; background:transparent; padding:12px 14px; font-size:15px; letter-spacing:1px; color:var(--ink); }
+  .key-field input::placeholder{ color:#B7AF9C; }
+  .err{ color:var(--rust); font-size:13px; min-height:18px; margin:8px 0 6px; }
+  .btn-primary{ width:100%; border:none; background:var(--gold); color:#fff; font-weight:600; font-size:15px;
+    padding:13px 16px; border-radius:10px; transition:transform .12s ease, background .15s ease; margin-top:6px; }
+  .btn-primary:disabled{ opacity:0.6; cursor:progress; }
+  .btn-primary:hover:not(:disabled){ background:#a97622; transform:translateY(-1px); }
+  .gate-foot{ text-align:center; margin-top:20px; font-size:13.5px; color:var(--text-soft); }
+  .gate-foot a{ color:var(--ink); font-weight:600; text-decoration:none; border-bottom:1px solid var(--gold); }
+  .hint{ margin-top:22px; padding:12px 14px; background:#F4EFE2; border-radius:10px; font-size:12.5px; color:var(--text-soft); border:1px dashed var(--border); }
+
+  #app{ display:flex; min-height:100vh; }
+  .sidebar{ width:286px; flex-shrink:0; background:var(--ink); color:#EAF0F3; padding:22px 18px 30px; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  .side-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .side-top .brand{ display:flex; align-items:center; gap:9px; }
+  .side-top .cup{ font-size:20px; } .side-top span.name{ font-weight:700; font-size:16px; }
+  .logout{ background:none; border:none; color:#9FB4BF; font-size:11px; text-decoration:underline; }
+  .side-sub{ font-size:12px; color:#9FB4BF; margin:0 0 18px; }
+  .prog-wrap{ margin-bottom:22px; }
+  .prog-label{ display:flex; justify-content:space-between; font-size:12px; color:#BFD0D8; margin-bottom:6px; }
+  .prog-bar{ height:6px; background:rgba(255,255,255,0.14); border-radius:6px; overflow:hidden; }
+  .prog-fill{ height:100%; background:var(--gold); border-radius:6px; }
+  .section-title{ text-transform:uppercase; font-size:11px; letter-spacing:1px; color:#7E97A3; margin:18px 0 8px; font-weight:600; }
+  .path-item{ display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; font-size:13.5px; color:#DCE7EB; cursor:pointer; margin-bottom:2px; }
+  .path-item:hover{ background:rgba(255,255,255,0.06); }
+  .path-item.current{ background:rgba(192,138,46,0.22); color:#fff; }
+  .path-item .dot{ width:20px; height:20px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; border:1.5px solid #5B7280; }
+  .path-item.done .dot{ background:var(--sage); border-color:var(--sage); color:#fff; }
+  .path-item.current .dot{ background:var(--gold); border-color:var(--gold); color:#1F3B4D; font-weight:700; }
+  .path-item.locked{ color:#728691; }
+  .path-item.locked .dot{ background:transparent; }
+
+  .main{ flex:1; padding:30px 40px 60px; max-width:1100px; }
+  .topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:26px; }
+  .topbar .greet{ font-size:13.5px; color:var(--text-soft); }
+  .badge-key{ font-size:12px; background:#fff; border:1px solid var(--border); padding:6px 12px; border-radius:20px; color:var(--ink); }
+
+  .continue-card{ background:linear-gradient(120deg, var(--ink) 0%, var(--ink-2) 100%); border-radius:16px; padding:26px 28px; color:#fff;
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:26px; box-shadow:var(--shadow); gap:20px; flex-wrap:wrap; }
+  .continue-card .lbl{ font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--gold-soft); margin-bottom:6px; }
+  .continue-card h2{ font-size:21px; margin:0; max-width:440px; }
+  .btn-continue{ background:var(--gold); border:none; color:#1F3B4D; font-weight:700; padding:11px 20px; border-radius:9px; font-size:14px; white-space:nowrap; }
+
+  .cards-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:30px; }
+  .action-card{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; box-shadow:var(--shadow); }
+  .action-card .icn{ font-size:20px; margin-bottom:10px; display:inline-block; }
+  .action-card .eyebrow{ font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:var(--gold); font-weight:700; margin-bottom:4px;}
+  .action-card h3{ font-size:16px; margin:0 0 6px; color:var(--ink); }
+  .action-card p{ font-size:13px; color:var(--text-soft); margin:0; }
+
+  .section-h{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; }
+  .section-h h3{ font-size:17px; color:var(--ink); margin:0; }
+  .list-card{ background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); }
+  .list-row{ display:flex; align-items:center; gap:14px; padding:15px 18px; border-bottom:1px solid var(--border); cursor:pointer; }
+  .list-row:last-child{ border-bottom:none; }
+  .list-row .tag{ font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--rust); background:#F3E4D8; padding:4px 8px; border-radius:5px; }
+  .list-row .ttl{ flex:1; font-size:14px; color:var(--ink); font-weight:500; }
+  .list-row .pct{ font-size:12.5px; color:var(--text-soft); width:100px; text-align:right;}
+  .list-row .mini-bar{ flex:1; max-width:120px; height:5px; background:var(--border); border-radius:5px; overflow:hidden; margin-right:6px;}
+  .list-row .mini-bar > div{ height:100%; background:var(--sage); }
+
+  .crumb{ font-size:13px; color:var(--text-soft); margin-bottom:16px; cursor:pointer; }
+  .crumb b{ color:var(--ink); }
+  .lesson-nav{ display:flex; justify-content:space-between; margin-bottom:18px; }
+  .nav-btn{ background:#fff; border:1px solid var(--border); border-radius:8px; padding:8px 14px; font-size:13px; color:var(--ink); font-weight:600; }
+  .lesson-title{ font-size:23px; color:var(--ink); margin:0 0 6px; }
+  .lesson-meta{ font-size:13px; color:var(--text-soft); margin-bottom:22px; }
+  .ref-table{ width:100%; border-collapse:collapse; margin:18px 0; font-size:13px; background:#fff; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .ref-table th{ background:var(--ink); color:#fff; text-align:left; padding:10px 12px; font-weight:600; font-size:12.5px; }
+  .ref-table td{ padding:10px 12px; border-top:1px solid var(--border); vertical-align:top; }
+  .source{ font-size:12px; color:var(--text-soft); text-align:center; margin:14px 0 30px; }
+  .mark-btn{ background:var(--sage); color:#fff; border:none; padding:10px 18px; border-radius:9px; font-weight:600; font-size:13.5px; }
+
+  .toast{ position:fixed; top:18px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 18px;
+    border-radius:9px; font-size:13px; box-shadow:var(--shadow); z-index:60; display:none; }
+  .toast.show{ display:block; }
+
+  @media (max-width:820px){ .sidebar{ display:none; } .cards-row{ grid-template-columns:1fr; } .main{ padding:22px 18px 60px; } }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ============ GATE ============ -->
+<div class="screen active" id="gate">
+  <div class="gate-card">
+    <div class="ring r1"></div><div class="ring r2"></div>
+    <div class="gate-logo"><span class="cup">☕</span><span>Café_digit — Premium</span></div>
+    <h1>Votre apprentissage commence avec une clé</h1>
+    <p>Entrez l'adresse email et la clé d'accès qui vous ont été envoyées après votre sélection ou votre paiement.</p>
+
+    <div class="field">
+      <label for="emailInput">Email</label>
+      <div class="key-field"><input id="emailInput" type="email" placeholder="vous@exemple.com"></div>
+    </div>
+    <div class="field">
+      <label for="keyInput">Clé d'accès</label>
+      <div class="key-field"><span class="tag mono">CLÉ</span><input id="keyInput" class="mono" type="text" placeholder="CD-7734-XXXX" maxlength="14"></div>
+    </div>
+
+    <div class="err" id="gateErr"></div>
+    <button class="btn-primary" id="unlockBtn" onclick="tryUnlock()">Entrer sur la plateforme</button>
+    <div class="gate-foot">Pas encore de clé ? <a href="#" onclick="return false;">Rejoindre la liste d'attente</a></div>
+    <div class="hint">Connexion sécurisée par Supabase Auth : une session réelle est créée à partir de votre clé, sans mot de passe à retenir.</div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div class="screen" id="app">
+  <aside class="sidebar">
+    <div class="side-top">
+      <div class="brand"><span class="cup">☕</span><span class="name">Café_digit</span></div>
+      <button class="logout" onclick="logout()">Se déconnecter</button>
+    </div>
+    <p class="side-sub" id="courseTitle">Chargement du parcours…</p>
+    <div class="prog-wrap">
+      <div class="prog-label"><span>Progression</span><span class="mono" id="progPct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div id="pathList"></div>
+  </aside>
+
+  <main class="main">
+    <div id="dashboardView">
+      <div class="topbar">
+        <div class="greet" id="greet">Bonjour 👋</div>
+        <div class="badge-key mono" id="tierBadge">—</div>
+      </div>
+
+      <div class="continue-card">
+        <div>
+          <div class="lbl">Reprendre</div>
+          <h2 id="continueTitle">Chargement…</h2>
+        </div>
+        <button class="btn-continue" id="continueBtn">Continuer →</button>
+      </div>
+
+      <div class="cards-row">
+        <div class="action-card"><span class="icn">🧪</span><div class="eyebrow">Évaluer</div><h3>Testez vos acquis</h3><p>Quiz courts après chaque module pour mesurer votre compréhension.</p></div>
+        <div class="action-card"><span class="icn">🛠️</span><div class="eyebrow">Pratiquer</div><h3>Ateliers guidés</h3><p>Manipulez R, Python et QGIS sur des jeux de données camerounais.</p></div>
+        <div class="action-card"><span class="icn">🌍</span><div class="eyebrow">Appliquer</div><h3>Cas de terrain réels</h3><p>Le projet Métabolisme des Quartiers Hors-Piste comme étude de cas fil rouge.</p></div>
+      </div>
+
+      <div class="section-h"><h3>Votre parcours</h3></div>
+      <div class="list-card" id="lessonList"></div>
+    </div>
+
+    <div id="lessonView" style="display:none;">
+      <div class="crumb" onclick="showDashboard()">← <b>Café_digit</b> / <span id="crumbModule"></span></div>
+      <div class="lesson-nav">
+        <button class="nav-btn" onclick="showDashboard()">‹ Retour au tableau de bord</button>
+      </div>
+      <h2 class="lesson-title" id="lessonTitle"></h2>
+      <div class="lesson-meta" id="lessonMeta"></div>
+      <div id="lessonBody"></div>
+      <button class="mark-btn" id="markDoneBtn">Marquer comme terminé ✓</button>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+  // ---------------------------------------------------------------
+  // CONFIGURATION — à remplacer après création de votre projet Supabase
+  // (Dashboard Supabase > Project Settings > API)
+  // ---------------------------------------------------------------
+  const SUPABASE_URL = "https://VOTRE-PROJET.supabase.co";
+  const SUPABASE_ANON_KEY = "VOTRE_ANON_KEY";
+  const REDEEM_KEY_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/redeem-key`;
+  // ---------------------------------------------------------------
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let currentLessonId = null;
+  let lessonsCache = [];
+
+  window.tryUnlock = async function () {
+    const email = document.getElementById('emailInput').value.trim().toLowerCase();
+    const key = document.getElementById('keyInput').value.trim().toUpperCase();
+    const err = document.getElementById('gateErr');
+    const btn = document.getElementById('unlockBtn');
+    err.textContent = '';
+
+    if (!email || !key) {
+      err.textContent = 'Entrez votre email et la clé reçue pour continuer.';
+      return;
+    }
+    btn.disabled = true; btn.textContent = 'Vérification…';
+    try {
+      const res = await fetch(REDEEM_KEY_FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, key }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        err.textContent = data.error || "Clé invalide.";
+        return;
+      }
+      await supabase.auth.setSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+      });
+      await enterApp(data.user);
+    } catch (e) {
+      err.textContent = "Connexion impossible. Réessayez dans un instant.";
+    } finally {
+      btn.disabled = false; btn.textContent = 'Entrer sur la plateforme';
+    }
+  };
+
+  window.logout = async function () {
+    await supabase.auth.signOut();
+    document.getElementById('app').classList.remove('active');
+    document.getElementById('gate').classList.add('active');
+  };
+
+  window.showDashboard = function () {
+    document.getElementById('lessonView').style.display = 'none';
+    document.getElementById('dashboardView').style.display = 'block';
+  };
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  async function enterApp(user) {
+    document.getElementById('gate').classList.remove('active');
+    document.getElementById('app').classList.add('active');
+    document.getElementById('tierBadge').textContent = user.tier === 'premium' ? 'Accès Premium' : 'Accès Standard';
+    await loadCourse();
+  }
+
+  async function loadCourse() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: course } = await supabase.from('courses').select('*').order('order_index').limit(1).maybeSingle();
+    if (!course) { showToast("Aucun cours disponible pour votre profil."); return; }
+    document.getElementById('courseTitle').textContent = course.title;
+
+    const { data: modules } = await supabase.from('modules').select('*').eq('course_id', course.id).order('order_index');
+    const { data: lessons } = await supabase.from('lessons').select('*').in('module_id', (modules||[]).map(m=>m.id)).order('order_index');
+    const { data: progressRows } = await supabase.from('progress').select('*').eq('user_id', user.id);
+    const progressMap = Object.fromEntries((progressRows||[]).map(p => [p.lesson_id, p]));
+
+    lessonsCache = (lessons||[]).map(l => ({ ...l, module: modules.find(m=>m.id===l.module_id), progress: progressMap[l.id] }));
+
+    renderSidebar(modules||[], lessonsCache);
+    renderDashboardList(lessonsCache);
+    renderContinueCard(lessonsCache);
+    renderOverallProgress(lessonsCache);
+  }
+
+  function renderSidebar(modules, lessons) {
+    const wrap = document.getElementById('pathList');
+    wrap.innerHTML = '';
+    modules.forEach(m => {
+      const h = document.createElement('div');
+      h.className = 'section-title';
+      h.textContent = m.title;
+      wrap.appendChild(h);
+      lessons.filter(l => l.module_id === m.id).forEach(l => {
+        const row = document.createElement('div');
+        const status = l.progress?.status || 'not_started';
+        row.className = 'path-item ' + (status === 'completed' ? 'done' : status === 'in_progress' ? 'current' : '');
+        row.innerHTML = `<div class="dot">${status==='completed'?'✓':status==='in_progress'?'●':'•'}</div>${l.title}`;
+        row.onclick = () => openLesson(l.id);
+        wrap.appendChild(row);
+      });
+    });
+  }
+
+  function renderDashboardList(lessons) {
+    const wrap = document.getElementById('lessonList');
+    wrap.innerHTML = '';
+    lessons.forEach(l => {
+      const pct = l.progress?.percent ?? 0;
+      const row = document.createElement('div');
+      row.className = 'list-row';
+      row.onclick = () => openLesson(l.id);
+      row.innerHTML = `
+        <span class="tag">${l.content_type}</span>
+        <span class="ttl">${l.title}</span>
+        <div class="mini-bar"><div style="width:${pct}%"></div></div>
+        <span class="pct">${pct===100?'Terminé':pct+'% terminé'}</span>`;
+      wrap.appendChild(row);
+    });
+  }
+
+  function renderContinueCard(lessons) {
+    const next = lessons.find(l => (l.progress?.status||'not_started') !== 'completed') || lessons[0];
+    if (!next) return;
+    document.getElementById('continueTitle').textContent = next.title;
+    document.getElementById('continueBtn').onclick = () => openLesson(next.id);
+  }
+
+  function renderOverallProgress(lessons) {
+    if (!lessons.length) return;
+    const total = lessons.reduce((s,l) => s + (l.progress?.percent ?? 0), 0);
+    const pct = Math.round(total / lessons.length);
+    document.getElementById('progPct').textContent = pct + '%';
+    document.getElementById('progFill').style.width = pct + '%';
+  }
+
+  async function openLesson(lessonId) {
+    const lesson = lessonsCache.find(l => l.id === lessonId);
+    if (!lesson) return;
+    currentLessonId = lessonId;
+
+    document.getElementById('dashboardView').style.display = 'none';
+    document.getElementById('lessonView').style.display = 'block';
+    document.getElementById('crumbModule').textContent = lesson.module?.title || '';
+    document.getElementById('lessonTitle').textContent = lesson.title;
+    document.getElementById('lessonMeta').textContent = `${lesson.content_type.toUpperCase()} · ${lesson.module?.title || ''}`;
+
+    const body = document.getElementById('lessonBody');
+    if (lesson.content_type === 'table' && lesson.content?.rows) {
+      const rows = lesson.content.rows.map(r => `<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+      body.innerHTML = `
+        <p>${lesson.content.intro || ''}</p>
+        <table class="ref-table"><tr><th>Signal</th><th>Ce qu'on observe</th><th>Poids indicatif</th></tr>${rows}</table>
+        <div class="source">${lesson.content.source || ''}</div>`;
+    } else if (lesson.content_type === 'quiz') {
+      body.innerHTML = `<p>Quiz interactif à connecter (ex. via une table <code>quiz_questions</code> dédiée).</p>`;
+    } else {
+      body.innerHTML = `<p>${lesson.content?.body || 'Contenu à rédiger dans la table lessons (colonne content).'}</p>`;
+    }
+
+    document.getElementById('markDoneBtn').onclick = () => markComplete(lessonId);
+  }
+
+  async function markComplete(lessonId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from('progress').upsert({
+      user_id: user.id, lesson_id: lessonId, status: 'completed', percent: 100, updated_at: new Date().toISOString(),
+    });
+    showToast('Leçon marquée comme terminée ✓');
+    await loadCourse();
+    showDashboard();
+  }
+
+  // Reprend une session existante si l'utilisateur recharge la page
+  (async function init() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profile } = await supabase.from('profiles').select('tier').eq('id', user.id).maybeSingle();
+      await enterApp({ id: user.id, email: user.email, tier: profile?.tier || 'standard' });
+    }
+  })();
+
+  document.getElementById('keyInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') window.tryUnlock(); });
+  document.getElementById('emailInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') window.tryUnlock(); });
+</script>
+</body>
+</html>
